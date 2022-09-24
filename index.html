@@ -2,21 +2,31 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Create a heatmap layer</title>
+<title>Covid-19 Info</title>
 <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+
 <link href="https://api.mapbox.com/mapbox-gl-js/v2.7.0/mapbox-gl.css" rel="stylesheet">
 <script src="https://api.mapbox.com/mapbox-gl-js/v2.7.0/mapbox-gl.js"></script>
-<style>
-body { margin: 0; padding: 0; }
-#map { position: absolute; top: 0; bottom: 0; width: 100%; }
-</style>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="style.css">
+
 </head>
 <body>
 <div id="map"></div>
- 
-<script src="app.js">
-	
-</script>
- 
+
+<div class='quake-info'>
+    <div><h1>COVID-19 WORLD INFO</h1></div>
+    
+    <div><strong>Total Confirmed:</strong> <span id='confirmed'></span></div>
+    <div><strong>Total Deaths:</strong> <span id='deaths'></span></div> <br>
+    <div class="prompt">Hover to view pandemic details for each Country</div>
+    <div class="disclaimer">The COVID-19 Data for this page was taken by the <a href="https://covid-19-data.unstatshub.org/datasets/cases-country/api">UN STATSHUB API</a>.</div>
+</div>
+
+<script src="app.js"></script>
 </body>
 </html>

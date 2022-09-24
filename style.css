@@ -1,0 +1,44 @@
+body { margin: 0; padding: 0; }
+#map { position: absolute; top: 0; bottom: 0; width: 100%; }
+h1 { font-size: 1rem; text-align: center;}
+
+.quake-info {
+  position: absolute;
+  font-family: 'Poppins',sans-serif;
+  margin-top: 5px;
+  margin-left: 5px;
+  padding: 12px 10px 12px 10px;
+  border: none;
+  font-size: 14px;
+  color: #ffffffde;
+  background-color: #FC4F4F;
+  border-radius: 15px;
+  box-shadow: -5px 8px 14px -2px rgba(0,0,0,0.83);
+  transform: translateX(8px), translateY(8px);
+}
+
+.quake-info h1{
+    text-align: center;
+    margin-top: 0.2em;
+}
+
+.quake-info div {
+    margin: 0.2em 0em 0.2em 0em;
+}
+
+.quake-info .disclaimer{
+    font-size: xx-small;
+    text-align: center;
+    margin-top: 0.2em;
+}
+
+.quake-info a{
+    color: #4ea9ff;
+}
+
+.quake-info a:hover{
+    color: #740e0e;
+    background-color: #4ea9ff;
+}
+
+

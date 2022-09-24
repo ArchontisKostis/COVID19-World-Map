@@ -1,221 +1,182 @@
-const MAPBOX_TOKEN = 'pk.eyJ1IjoiYXJjaG9udGlzIiwiYSI6ImNsMDk5ZzA3MDA4b28za28zc3QyMGtsN3YifQ.9Doml5dY0IShopV-NkTiPQ'
 
-mapboxgl.accessToken = MAPBOX_TOKEN;
-
-// Map Creation
-const map = new mapboxgl.Map({
-    container: 'map',
-    style: 'mapbox://styles/mapbox/dark-v10',
-    center: [-120, 50],
-    zoom: 2
+let covidData = [];
+let confirmedDiv = document.getElementById('confirmed');
+let deathsDiv = document.getElementById('deaths');
+const covidApi = "https://services1.arcgis.com/0MSEUqKaxRlEPj5g/arcgis/rest/services/ncov_cases2_v1/FeatureServer/2/query?where=1%3D1&outFields=*&outSR=4326&f=json";
+//====== Fetch Covid19 Country Data from UN DESA Statistics API ======
+fetch(covidApi)
+.then(res => {
+    return res.json();
+})
+.then(data => {
+    // Get the covid data
+    covidData = [...data.features];
+    console.log(confirmedDiv);    
+})
+.catch( err => {
+    console.log(err);
 });
 
-map.on('load', () => { 
-    // Add a geojson point source.
-    // Heatmap layers also work with a vector tile source.  
-    map.addSource('earthquakes', {
+
+    mapboxgl.accessToken = 'pk.eyJ1IjoiYXJjaG9udGlzIiwiYSI6ImNsMDk5ZzA3MDA4b28za28zc3QyMGtsN3YifQ.9Doml5dY0IShopV-NkTiPQ';
+
+    const map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/mapbox/streets-v11',
+        center: [-100.486052, 37.830348],
+        zoom: 2,
+        minZoom: 1.5
+    });
+    
+    let hoveredStateId = null;
+
+    
+    map.on('load', () => {
+        map.addSource('states', {
         'type': 'geojson',
-        'data': 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson'
-    });
-
-    // HeatPoints Layer Addition
-    map.addLayer(
-        {
-        'id': 'earthquakes-heat',
-        'type': 'heatmap',
-        'source': 'earthquakes',
-        'maxzoom': 9,
-        'paint': {
-            // Increase the heatmap weight based on frequency and property magnitude
-            'heatmap-weight': [
-                'interpolate',
-                ['linear'],
-                ['get', 'mag'],
-                0,
-                0,
-                6,
-                1
-            ],
-
-            // Increase the heatmap color weight weight by zoom level
-            // heatmap-intensity is a multiplier on top of heatmap-weight
-            'heatmap-intensity': [
-                'interpolate',
-                ['linear'],
-                ['zoom'],
-                0,
-                1,
-                9,
-                3
-            ],
-
-            // Color ramp for heatmap.  Domain is 0 (low) to 1 (high).
-            // Begin color ramp at 0-stop with a 0-transparancy color
-            // to create a blur-like effect.
-            'heatmap-color': [
-                'interpolate',
-                ['linear'],
-                ['heatmap-density'],
-                0,
-                'rgba(33,102,172,0)',
-                0.2,
-                'rgb(103,169,207)',
-                0.4,
-                'rgb(209,229,240)',
-                0.6,
-                'rgb(253,219,199)',
-                0.8,
-                'rgb(239,138,98)',
-                1,
-                'rgb(178,24,43)'
-            ],
-
-            // Adjust the heatmap radius by zoom level
-            'heatmap-radius': [
-                'interpolate',
-                ['linear'],
-                ['zoom'],
-                0,
-                2,
-                9,
-                20
-            ],
-
-            // Transition from heatmap to circle layer by zoom level
-            'heatmap-opacity': [
-                'interpolate',
-                ['linear'],
-                ['zoom'],
-                7,
-                1,
-                9,
-                0
-            ]
-        }
-    },
-
-    'waterway-label'
-    );
-
-    // Create a popup, but don't add it to the map yet.
-    const popup = new mapboxgl.Popup({
-        closeButton: false,
-        closeOnClick: false
+        'data': 'countries.geojson'
         });
-        map.on('mouseenter', 'earthquakes-heat',  (e) => {
-        // Change the cursor style as a UI indicator.
-        map.getCanvas().style.cursor = 'pointer';
 
-    // Copy coordinates array.
-    const magnitude = e.features[0].properties.mag;
-    const location = e.features[0].properties.place;
-    const date = new Date(e.features[0].properties.time);
+        // World Data
+        let worldConfirmed = 0;
+        let worldDeaths = 0;
 
-    const coordinates = e.features[0].geometry.coordinates.slice();
-    const description = '<b>Magnitude: </b>' + magnitude + '<br> <b>Location: </b>' + location + '<br> <b>Date: </b>' + date;
-    
-
-    // Ensure that if the map is zoomed out such that multiple
-    // copies of the feature are visible, the popup appears
-    // over the copy being pointed to.
-    while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
-    coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
-    }
-    
-    // Populate the popup and set its coordinates
-    // based on the feature found.
-    popup.setLngLat(coordinates).setHTML(description).addTo(map);
-
-    });
-    
-
-    map.on('mouseleave', 'earthquakes-heat', () => {
-    map.getCanvas().style.cursor = '';
-    popup.remove();
-    });
-
-    
-    map.addLayer(
-    {
-    'id': 'earthquakes-point',
-    'type': 'circle',
-    'source': 'earthquakes',
-    'minzoom': 7,
-    'paint': {
-    // Size circle radius by earthquake magnitude and zoom level
-    'circle-radius': [
-    'interpolate',
-    ['linear'],
-    ['zoom'],
-    7,
-    ['interpolate', ['linear'], ['get', 'mag'], 1, 1, 6, 4],
-    16,
-    ['interpolate', ['linear'], ['get', 'mag'], 1, 5, 6, 50]
-    ],
-    // Color circle by earthquake magnitude
-    'circle-color': [
-    'interpolate',
-    ['linear'],
-    ['get', 'mag'],
-    1,
-    'rgba(33,102,172,0)',
-    2,
-    'rgb(103,169,207)',
-    3,
-    'rgb(209,229,240)',
-    4,
-    'rgb(253,219,199)',
-    5,
-    'rgb(239,138,98)',
-    6,
-    'rgb(178,24,43)'
-    ],
-    'circle-stroke-color': 'white',
-    'circle-stroke-width': 1,
-    // Transition from heatmap to circle layer by zoom level
-    'circle-opacity': [
-    'interpolate',
-    ['linear'],
-    ['zoom'],
-    7,
-    0,
-    8,
-    1
-    ]
-    }
-    },
-    'waterway-label'
-    );
-    
-    map.on('mouseenter', 'earthquakes-point',  (e) => {
-        // Change the cursor style as a UI indicator.
-        map.getCanvas().style.cursor = 'pointer';
-    
-        // Copy coordinates array.
-        const magnitude = e.features[0].properties.mag;
-        const location = e.features[0].properties.place;
-        const date = new Date(e.features[0].properties.time);
-
-        const coordinates = e.features[0].geometry.coordinates.slice();
-        const description = '<b>Magnitude: </b>' + magnitude + '<br> <b>Location: </b>' + location + '<br> <b>Date: </b>' + date;
-    
-
-        // Ensure that if the map is zoomed out such that multiple
-        // copies of the feature are visible, the popup appears
-        // over the copy being pointed to.
-        while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
-            coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+        for(let i=0; i<covidData.length; i++){
+            worldConfirmed += covidData[i].attributes.Confirmed;
+            worldDeaths += covidData[i].attributes.Deaths;
         }
-    
-        // Populate the popup and set its coordinates
-        // based on the feature found.
-        popup.setLngLat(coordinates).setHTML(description).addTo(map);
+        confirmedDiv.textContent = worldConfirmed.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        deathsDiv.textContent = worldDeaths.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 
-    });
     
+        // The feature-state dependent fill-opacity expression will render the hover effect
+        // when a feature's hover state is set to true.
+        
+        map.addLayer({
+        'id': 'state-fills',
+        'type': 'fill',
+        'source': 'states',
+        'layout': {},
+        'paint': {
+        'fill-color': '#c16262',
+        'fill-opacity': [
+        'case',
+        ['boolean', ['feature-state', 'hover'], false],
+        1,
+        0.5
+        ]
+        }
+        });
 
-    map.on('mouseleave', 'earthquakes-point', () => {
-    map.getCanvas().style.cursor = '';
-    popup.remove();
+    
+        map.addLayer({
+        'id': 'state-borders',
+        'type': 'line',
+        'source': 'states',
+        'layout': {},
+        'paint': {
+        'line-color': '#c16262',
+        'line-width': 1
+        }
+        });
+
+        // Create a popup, but don't add it to the map yet.
+        const popup = new mapboxgl.Popup({
+            closeButton: false,
+            closeOnClick: false
+        });
+        
+        // When the user moves their mouse over the state-fill layer, we'll update the
+        // feature state for the feature under the mouse.
+        map.on('mousemove', 'state-fills', (e) => {
+            if (e.features.length > 0) {
+                if (hoveredStateId !== null) {
+                    map.setFeatureState(
+                        { source: 'states', id: hoveredStateId },
+                        { hover: false }
+                    );
+                }
+
+                map.getCanvas().style.cursor = 'pointer';
+
+                // Basic Country Details
+                let countryName = e.features[0].properties.ADMIN;
+                let flag = e.features[0].properties.FLAG;
+                // COVID-19 Country Details
+                let confirmed = null;
+                let deaths = null;
+
+                for(let i=0; i<covidData.length; i++){
+                    if(covidData[i].attributes.ISO3 === e.features[0].properties.ISO_A3){
+                        confirmed = covidData[i].attributes.Confirmed;
+                        deaths = covidData[i].attributes.Deaths;
+                    }
+                } 
+               
+                let countryDetails = `
+                    <h1>${countryName}</h1>
+                    <p>
+                        <b>Unknown Covid-19 Details</b>
+                    </p>
+                `;
+
+                // Get the iso_2 of the country
+                // The flagcdn page has flags of every country like: https://flagcdn.com/COUNTRY_ISO.svg (eg gr.svg)
+                let iso = e.features[0].properties.ISO_A2;
+                if(iso!='-'){
+                    console.log(confirmed);
+                    if(confirmed===null && deaths!==null){
+                        countryDetails = `
+                            <h1>${countryName} <img src="https://flagcdn.com/${iso.toLowerCase()}.svg" alt="Country Flag" width="36" height="27"> </h1>
+                            <p>
+                                <b>Confirmed: </b>Unknown <br>
+                                <b>Deaths: </b>${deaths.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
+                            </p>
+                        `;
+                    } else if(deaths===null && confirmed!==null){
+                        countryDetails = `
+                            <h1>${countryName} <img src="https://flagcdn.com/${iso.toLowerCase()}.svg" alt="Country Flag" width="36" height="27"> </h1>
+                            <p>
+                                <b>Confirmed: </b>${confirmed.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')} <br>
+                                <b>Deaths: </b>Unknown
+                            </p>
+                        `;
+                    } else if(deaths!==null && confirmed!==null){
+                        countryDetails = `
+                            <h1>${countryName} <img src="https://flagcdn.com/${iso.toLowerCase()}.svg" alt="Country Flag" width="36" height="27"> </h1>
+                            <p>
+                                <b>Confirmed: </b>${confirmed.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')} <br>
+                                <b>Deaths: </b>${deaths.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
+                            </p>
+                        `;
+                    }
+                }
+                
+
+                popup.setLngLat(e.lngLat).setHTML(countryDetails).addTo(map);
+                
+                hoveredStateId = e.features[0].id;
+                console.log(countryDetails);
+                map.setFeatureState(
+                    { source: 'states', id: hoveredStateId },
+                    { hover: true }
+                );
+            }
+        });
+
+        // When the mouse leaves the state-fill layer, update the feature state of the
+        // previously hovered feature.
+        map.on('mouseleave', 'state-fills', () => {
+        
+        if (hoveredStateId !== null) {
+            map.getCanvas().style.cursor = '';
+            popup.remove();
+            map.setFeatureState(
+                { source: 'states', id: hoveredStateId },
+                { hover: false }
+            );
+        }
+
+        hoveredStateId = null;
+        });
     });
-});
