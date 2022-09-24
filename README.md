@@ -1,2 +1,8 @@
 # COVID19-World-Map
- A website showing details about covid on the word map. 
+A Website that shows information about COVID-19 on the world map
+
+## Made with:
+- [Mapbox API](https://www.mapbox.com/)
+- [UN Statshub API](https://covid-19-data.unstatshub.org/datasets/cases-country/api)
+
+By Archontis Kostis.
