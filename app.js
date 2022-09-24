@@ -10,8 +10,7 @@ fetch(covidApi)
 })
 .then(data => {
     // Get the covid data
-    covidData = [...data.features];
-    console.log(confirmedDiv);    
+    covidData = [...data.features];  
 })
 .catch( err => {
     console.log(err);
@@ -124,7 +123,6 @@ fetch(covidApi)
                 // The flagcdn page has flags of every country like: https://flagcdn.com/COUNTRY_ISO.svg (eg gr.svg)
                 let iso = e.features[0].properties.ISO_A2;
                 if(iso!='-'){
-                    console.log(confirmed);
                     if(confirmed===null && deaths!==null){
                         countryDetails = `
                             <h1>${countryName} <img src="https://flagcdn.com/${iso.toLowerCase()}.svg" alt="Country Flag" width="36" height="27"> </h1>
@@ -156,7 +154,7 @@ fetch(covidApi)
                 popup.setLngLat(e.lngLat).setHTML(countryDetails).addTo(map);
                 
                 hoveredStateId = e.features[0].id;
-                console.log(countryDetails);
+
                 map.setFeatureState(
                     { source: 'states', id: hoveredStateId },
                     { hover: true }
