@@ -1,6 +1,8 @@
 # COVID19-World-Map
 A Website that shows information about COVID-19 on the world map <br>
-[View live](https://covidmap-roan.vercel.app/)
+
+# View the Website
+[Click Here](https://covidmap-roan.vercel.app/)
 
 ## Made with:
 - [Mapbox API](https://www.mapbox.com/)
